@@ -1,0 +1,81 @@
+{
+  "name": "scriptsentinel-vscode",
+  "displayName": "ScriptSentinel",
+  "description": "Author and audit least-privilege policies for third-party JavaScript integrations.",
+  "version": "0.1.0",
+  "publisher": "scriptsentinel",
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.90.0"
+  },
+  "categories": [
+    "Other",
+    "Linters"
+  ],
+  "activationEvents": [
+    "onView:scriptsentinel.policyExplorer",
+    "onCommand:scriptsentinel.createPolicy",
+    "onCommand:scriptsentinel.validatePolicy"
+  ],
+  "main": "./out/src/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "scriptsentinel.createPolicy",
+        "title": "ScriptSentinel: Create Policy"
+      },
+      {
+        "command": "scriptsentinel.validatePolicy",
+        "title": "ScriptSentinel: Audit Policy"
+      },
+      {
+        "command": "scriptsentinel.refreshPolicyExplorer",
+        "title": "ScriptSentinel: Refresh Policy Explorer"
+      }
+    ],
+    "views": {
+      "explorer": [
+        {
+          "id": "scriptsentinel.policyExplorer",
+          "name": "ScriptSentinel"
+        }
+      ]
+    },
+    "menus": {
+      "view/title": [
+        {
+          "command": "scriptsentinel.createPolicy",
+          "when": "view == scriptsentinel.policyExplorer",
+          "group": "navigation"
+        },
+        {
+          "command": "scriptsentinel.validatePolicy",
+          "when": "view == scriptsentinel.policyExplorer",
+          "group": "navigation"
+        },
+        {
+          "command": "scriptsentinel.refreshPolicyExplorer",
+          "when": "view == scriptsentinel.policyExplorer",
+          "group": "navigation"
+        }
+      ]
+    },
+    "jsonValidation": [
+      {
+        "fileMatch": "scriptsentinel.json",
+        "url": "./resources/scriptsentinel.schema.json"
+      }
+    ]
+  },
+  "scripts": {
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "test": "npm run compile && node --test test/*.test.js",
+    "vscode:prepublish": "npm run compile"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.0",
+    "@types/vscode": "^1.90.0",
+    "typescript": "^5.8.3"
+  }
+}

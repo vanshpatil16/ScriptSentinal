@@ -1,0 +1,170 @@
+:root {
+  color-scheme: dark;
+  font-family: "Segoe UI", system-ui, sans-serif;
+  background: #0a1020;
+  color: #e6ecf5;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+}
+
+main {
+  width: min(1120px, calc(100% - 40px));
+  margin: 44px auto;
+}
+
+.eyebrow {
+  margin: 0 0 9px;
+  color: #8ca3c6;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+}
+
+h1,
+h2,
+p {
+  margin-top: 0;
+}
+
+h1 {
+  margin-bottom: 8px;
+  font-size: clamp(28px, 5vw, 42px);
+  letter-spacing: -0.04em;
+}
+
+.intro,
+footer,
+.hint {
+  color: #aab8cf;
+}
+
+.notice {
+  margin: 24px 0;
+  padding: 14px 16px;
+  border: 1px solid #725a2a;
+  border-radius: 9px;
+  background: #292317;
+  color: #f0dfb8;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.notice strong {
+  display: block;
+  margin-bottom: 3px;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 18px;
+}
+
+.panel {
+  min-width: 0;
+  padding: 18px;
+  border: 1px solid #26334a;
+  border-radius: 11px;
+  background: #111a2d;
+}
+
+.panel-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+h2 {
+  margin-bottom: 16px;
+  font-size: 18px;
+}
+
+.pill {
+  padding: 4px 9px;
+  border-radius: 99px;
+  background: #28354c;
+  color: #c3d0e3;
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.pill-good {
+  background: #12392e;
+  color: #84e2bb;
+}
+
+.pill-warn {
+  background: #49331c;
+  color: #f1c47c;
+}
+
+iframe {
+  display: block;
+  width: 100%;
+  height: 282px;
+  border: 1px solid #3a4860;
+  border-radius: 8px;
+  background: #f7f9fc;
+}
+
+.hint {
+  margin: 10px 0 0;
+  font-size: 12px;
+}
+
+code {
+  color: #d3b8ff;
+}
+
+.audit-log {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  height: 330px;
+  margin: 0;
+  padding: 0 4px 0 0;
+  overflow: auto;
+  list-style: none;
+}
+
+.audit-log li {
+  padding: 8px 9px;
+  border-left: 2px solid #60728f;
+  border-radius: 3px;
+  background: #18243a;
+  color: #c0cce0;
+  font: 11px/1.5 Consolas, monospace;
+  overflow-wrap: anywhere;
+}
+
+.audit-log .audit-allowed {
+  border-left-color: #3dc79a;
+}
+
+.audit-log .audit-denied {
+  border-left-color: #ef7373;
+}
+
+footer {
+  margin: 18px 0;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+@media (max-width: 760px) {
+  main {
+    margin: 24px auto;
+  }
+
+  .layout {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,0 +1,181 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ScriptSentinel policy",
+  "description": "Least-privilege policy metadata for third-party JavaScript integrations. This schema describes policy; it does not enforce it in a browser.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "applicationId",
+    "version",
+    "globalSettings",
+    "scripts"
+  ],
+  "properties": {
+    "applicationId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$"
+    },
+    "globalSettings": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "antiPrototypePollution",
+        "iframeBypassProtection"
+      ],
+      "properties": {
+        "antiPrototypePollution": {
+          "type": "boolean"
+        },
+        "iframeBypassProtection": {
+          "type": "boolean"
+        }
+      }
+    },
+    "scripts": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/script"
+      }
+    }
+  },
+  "$defs": {
+    "script": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "identifier",
+        "sourceMatch",
+        "permissions"
+      ],
+      "properties": {
+        "identifier": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sourceMatch": {
+          "type": "string",
+          "minLength": 1
+        },
+        "permissions": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "document": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "cookie": {
+                  "$ref": "#/$defs/accessRule"
+                },
+                "innerHTML": {
+                  "$ref": "#/$defs/accessRule"
+                }
+              }
+            },
+            "network": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "allowedOrigins",
+                "fallbackMode"
+              ],
+              "properties": {
+                "allowedOrigins": {
+                  "type": "array",
+                  "uniqueItems": true,
+                  "items": {
+                    "type": "string",
+                    "format": "uri"
+                  }
+                },
+                "fallbackMode": {
+                  "const": "drop-with-403"
+                }
+              }
+            },
+            "storage": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "localStorage": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "allow"
+                  ],
+                  "properties": {
+                    "allow": {
+                      "type": "boolean"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "accessRule": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "allow"
+      ],
+      "properties": {
+        "allow": {
+          "type": "boolean"
+        },
+        "fallbackMode": {
+          "enum": [
+            "mock",
+            "sanitize",
+            "block"
+          ]
+        },
+        "mockValue": {
+          "type": "string"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "allow": {
+                "const": false
+              }
+            },
+            "required": [
+              "allow"
+            ]
+          },
+          "then": {
+            "required": [
+              "fallbackMode"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "fallbackMode": {
+                "const": "mock"
+              }
+            },
+            "required": [
+              "fallbackMode"
+            ]
+          },
+          "then": {
+            "required": [
+              "mockValue"
+            ]
+          }
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; connect-src 'self'; frame-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
+  <title>ScriptSentinel Runtime Boundary Demo</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="broker.js" defer></script>
+  <script src="host.js" defer></script>
+</head>
+<body>
+  <main>
+    <header>
+      <p class="eyebrow">SCRIPT SENTINEL / RUNTIME PROTOTYPE</p>
+      <h1>Capability boundary demo</h1>
+      <p class="intro">An opaque-origin iframe can only ask the host for explicitly brokered demo capabilities.</p>
+    </header>
+
+    <section class="notice" role="note">
+      <strong>Prototype, not a production security product.</strong>
+      The widget is a local example, network responses are simulated, and no host cookies are read.
+      A sandboxed iframe does not provide drop-in compatibility or containment for arbitrary existing scripts.
+    </section>
+
+    <div class="layout">
+      <section class="panel widget-panel">
+        <div class="panel-heading">
+          <div>
+            <p class="eyebrow">UNTRUSTED CONTEXT</p>
+            <h2>Sandboxed widget</h2>
+          </div>
+          <span id="frame-state" class="pill">Starting</span>
+        </div>
+        <iframe id="sandbox" title="Isolated demo widget" sandbox="allow-scripts"
+                referrerpolicy="no-referrer" src="sandbox.html"></iframe>
+        <p class="hint">The sandbox omits <code>allow-same-origin</code>; its origin is opaque.</p>
+      </section>
+
+      <section class="panel">
+        <div class="panel-heading">
+          <div>
+            <p class="eyebrow">POLICY-CONTROLLED</p>
+            <h2>Broker audit</h2>
+          </div>
+          <span id="policy-state" class="pill">Loading policy</span>
+        </div>
+        <ol id="audit-log" class="audit-log" aria-live="polite"></ol>
+      </section>
+    </div>
+    <footer>Direct iframe egress is blocked by its Content Security Policy. The broker demo never sends an outbound request.</footer>
+  </main>
+</body>
+</html>

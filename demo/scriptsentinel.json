@@ -1,0 +1,29 @@
+{
+  "applicationId": "scriptsentinel-runtime-demo",
+  "version": "1.0.0",
+  "globalSettings": {
+    "antiPrototypePollution": true,
+    "iframeBypassProtection": true
+  },
+  "scripts": [
+    {
+      "identifier": "untrusted-demo-widget",
+      "sourceMatch": "local-demo://untrusted-widget",
+      "permissions": {
+        "document": {
+          "cookie": {
+            "allow": false,
+            "fallbackMode": "mock",
+            "mockValue": "session_id=REDACTED_BY_SCRIPTSENTINEL"
+          }
+        },
+        "network": {
+          "allowedOrigins": [
+            "https://trusted-analytics.example"
+          ],
+          "fallbackMode": "drop-with-403"
+        }
+      }
+    }
+  ]
+}
